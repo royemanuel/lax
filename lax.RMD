@@ -1,0 +1,21 @@
+---
+title: "Lacrosse Demonstration of JAGS Analysis"
+author: "Roy Emanuel, Ph.D."
+output: word_document
+---
+
+# Problem
+
+I have not yet demonstrated any of the "Bayesian" flavor of analysis,
+and this is intended to be my first go at it.
+
+```{r setup, echo=FALSE}
+library("tidyverse")
+library("rjags")
+library("readxl")
+print("Hello World")
+
+laxData <- read_excel("2015-2019 Combined Lacrosse Statistics.xlsx", sheet)
+
+
+```
