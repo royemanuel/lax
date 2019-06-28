@@ -1,7 +1,6 @@
 library("tidyverse")
 library("rjags")
 library("readxl")
-print("Hello World")
 
 laxData <- read_excel("2015-2019 Combined Lacrosse Statistics.xlsx",
                       sheet = "Results",
@@ -63,25 +62,29 @@ mod_string2 <- "model {
 mod_string_h <- "model {
     for (i in 1:length(y)) {
         y[i] ~ dnorm(mu[i], prec)
-        mu[i] = a0 + b[1] * GoalsFor[i]  + b[2] * GoalsAgainst[i] 
+        mu[i] = a0 + b[i,1] * GoalsFor[i]  + b[i,2] * GoalsAgainst[i] 
     }
 
     a0 ~ dnorm(0.0, 1.0/1e6)
     prec ~ dgamma(5/2.0, 5*10.0/2.0)
     
     for (j in 1:length(y)) {
-        b[1] ~ dnorm(nu[j], 1.0/1.0e6)
-        b[2] ~ dnorm(omicron[j], 1.0/1.0e6)
+        b[j,1] ~ dnorm(nu[j], prec2)
+        b[j,2] ~ dnorm(omicron[j], prec3)
         nu[j] = n0 + c[1] * Shooting[j]
         omicron[j] = o0 + c[2]  * Clearing[j]
     }
 
-    n0 ~ dnorm(0.0, 1.0/1e6)
-    o0 ~ dnorm(0.0, 1.0/1e6)
+    n0 ~ dbeta(1.0, 1.0)
+    o0 ~ dbeta(1.0, 1.0)
+    prec2 ~ dgamma(5/2.0, 5*10.0/2.0)
+    prec3 ~ dgamma(5/2.0, 5*10.0/2.0)
     for (k in 1:2) {
-        c[k] ~ dnorm(0.0, 1.0/1.0e6)
+        c[k] ~ dbeta(1, 1)
     }
     sig = sqrt( 1.0 / prec)
+    sig2 = sqrt(1.0/prec2)
+    sig3 = sqrt(1.0/prec3)
 }"
 
 
@@ -105,7 +108,7 @@ data_jags2 <- list(y=laxData$`Win %`,
 
 params <- c("a0", "b", "sig")
 
-params_h <- c("a0", "b", "n0", "o0", "c", "sig")
+params_h <- c("a0", "n0", "o0", "c", "sig", "sig2", "sig3")
 
 
 mod <- jags.model(textConnection(mod_string2), data=data_jags, n.chains=4)
@@ -154,7 +157,7 @@ qqnorm(resid)
 plot(mod_scaled_sim, ask=TRUE)
 gelman.diag(mod_scaled_sim)
 autocorr.diag(mod_scaled_sim)
-autocorr.plot(mod_scaled_sim)
+autocorr.ploto(mod_scaled_sim)
 effectiveSize(mod_scaled_sim)
 
 dic.samples(mod_scaled, n.iter=1e3)
@@ -172,4 +175,4 @@ qqnorm(resid_scaled)
 
 plot(laxData$`Win %` ~ laxData$GoalsFor)
 
-gf <- laxData$GoalsFor * sd(laxData$`G/Game`) + mean(laxData`G/Game`)
+gf <- laxData$GoalsFor * sd(laxData$`G/Game`) + mean(laxData$`G/Game`)

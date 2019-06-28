@@ -1,7 +1,7 @@
 ---
 title: "Lacrosse Demonstration of JAGS Analysis"
 author: "Roy Emanuel, Ph.D."
-output: word_document
+output: html_document  
 ---
 
 # Problem
@@ -9,13 +9,124 @@ output: word_document
 I have not yet demonstrated any of the "Bayesian" flavor of analysis,
 and this is intended to be my first go at it.
 
+
+The following code builds up the data used in the different models.
 ```{r setup, echo=FALSE}
 library("tidyverse")
 library("rjags")
 library("readxl")
 print("Hello World")
+laxData <- read_excel("2015-2019 Combined Lacrosse Statistics.xlsx",
+                      sheet = "Results",
+                      n_max = 353)
 
-laxData <- read_excel("2015-2019 Combined Lacrosse Statistics.xlsx", sheet)
+winView <- ggplot(laxData, aes(`GA/Game`, `G/Game`))  +
+    geom_point(size=10*laxData$`Win %` + 0.5)
 
+winView2 <- ggplot(laxData, aes(`GA/Game`,
+                                `G/Game`,
+                                colour = `Win %`))  +
+    geom_point()  +
+    scale_colour_gradient(low = "yellow", high = "blue")
 
+GoalsFor <- scale(laxData$`G/Game`)
+GoalsAgainst <- scale(laxData$`GA/Game`)
+
+GF_noAttr <- GoalsFor
+attr(GF_noAttr, 'scaled:scale') <- NULL
+attr(GF_noAttr, 'scaled:center') <- NULL
+GA_noAttr <- GoalsAgainst
+attr(GA_noAttr, 'scaled:scale') <- NULL
+attr(GA_noAttr, 'scaled:center') <- NULL
+
+laxData$GoalsFor <- as.vector(GF_noAttr)
+laxData$GoalsAgainst <- as.vector(GA_noAttr)
+
+plot(winView2)
+```
+
+The first model is a linear regression using GoalsFor and GoalsAgainst
+as the independent variables and winning percentage as the dependent variable.
+
+```{r}
+mod_string <- "model {
+    for (i in 1:length(y)) {
+        y[i] ~ dnorm(mu[i], prec)
+        mu[i] = a0 + b[1] * GoalsFor[i]  + b[2] * GoalsAgainst[i] 
+    }
+
+    a0 ~ dnorm(0.0, 1.0/1e6)
+    prec ~ dgamma(5/2.0, 5*10.0/2.0)
+    
+    for (j in 1:2) {
+        b[j] ~ dnorm(0.0, 1.0/1.0e6)
+    }
+    sig = sqrt( 1.0 / prec)
+}"
+set.seed(117)
+```
+The `data_jags` list uses the raw values for goals per game and goals against per game.
+The `data_jags2` list uses the scaled values for goals per game.
+```{r}
+data_jags <- list(y=laxData$`Win %`,
+                  GoalsFor=laxData$`G/Game`,
+                  GoalsAgainst=laxData$`GA/Game`)
+
+data_jags2 <- list(y=laxData$`Win %`,
+                  GoalsFor=laxData$GoalsFor,
+                  GoalsAgainst=laxData$GoalsAgainst)
+params <- c("a0", "b", "sig")
+```
+
+The un-scaled model:
+```{r}
+mod <- jags.model(textConnection(mod_string), data=data_jags, n.chains=4)
+
+update(mod, 1e3)
+
+mod_sim <- coda.samples(model=mod,
+                        variable.names=params,
+                        n.iter = 5e4)
+
+mod_csim <- as.mcmc(do.call(rbind, mod_sim))
+```
+The resultant diagnostic plots follow
+```{r}
+
+plot(mod_sim)
+gelman.diag(mod_sim)
+autocorr.diag(mod_sim)
+autocorr.plot(mod_sim)
+effectiveSize(mod_sim)
+
+dic.samples(mod, n.iter=1e3)
+
+summary(mod_sim)
+```
+
+Scaling the variables reduces the autocorrelation between draws. 
+
+```{r}
+modscaled <- jags.model(textConnection(mod_string), data=data_jags2, n.chains=4)
+
+update(modscaled, 1e3)
+
+modscaled_sim <- coda.samples(model=modscaled,
+                        variable.names=params,
+                        n.iter = 5e4)
+
+modscaled_csim <- as.mcmc(do.call(rbind, modscaled_sim))
+```
+The resultant diagnostic plots follow
+```{r, echo=FALSE}
+
+plot(modscaled_sim)
+gelman.diag(modscaled_sim)
+autocorr.diag(modscaled_sim)
+autocorr.plot(modscaled_sim)
+effectiveSize(modscaled_sim)
+
+dic.samples(modscaled, n.iter=1e3)
+
+summary(modscaled_sim)
 ```
