@@ -30,3 +30,18 @@ mu.PI <- apply(mu, 2, PI)
 plot( Divorce ~ MedianAgeMarriage.s, data=d, col=rangi2)
 abline(m5.1)
 shade(mu.PI, MAM.seq)
+
+d <-
+    d %>%
+    mutate(Marrage.s = (Marriage - mean(Marriage))/sd(Marriage))
+
+m5.2 <-
+    map(
+        alist(
+            Divorce ~ dnorm(mu, sigma),
+            mu <- a + bR * Marriage.s,
+            a ~ dnorm(10, 10),
+            bR ~ dnorm(0, 1),
+            sigma ~ dunif(0, 10)),
+        data = d)
+       
