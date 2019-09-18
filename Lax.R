@@ -172,4 +172,4 @@ qqnorm(resid_scaled)
 
 plot(laxData$`Win %` ~ laxData$GoalsFor)
 
-gf <- laxData$GoalsFor * sd(laxData$`G/Game`) + mean(laxData`G/Game`)
+gf <- laxData$GoalsFor * sd(laxData$`G/Game`) + mean(laxData$`GA/Game`)
