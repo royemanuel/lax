@@ -1,5 +1,5 @@
-library(rethinking)
 library(tidyverse)
+library(rethinking)
 data(WaffleDivorce)
 d <- WaffleDivorce
 
