@@ -15,16 +15,17 @@ stdz <- function(x){
 laxData  <-
     laxData %>%
     mutate(
-           G.s   = stdz(`G/Game`),
-           GA.s  = stdz(`GA/Game`),
-           SP.s  = stdz(`Shooting %`),
-           FO.s  = stdz(`Faceoff %`),
-           EO.s  = stdz(`EMO %`),
-           ED.s  = stdz(`EMD %`),
-           CP.s  = stdz(`Clearing %`),
-           TO.s  = stdz(`TO/Game`),
-           CTO.s = stdz(`CTO/Game`),
-           WinPer = stdz(`Win %`)) 
+        G.s   = stdz(`G/Game`),
+        GA.s  = stdz(`GA/Game`),
+        SP.s  = stdz(`Shooting %`),
+        FO.s  = stdz(`Faceoff %`),
+        EO.s  = stdz(`EMO %`),
+        ED.s  = stdz(`EMD %`),
+        CP.s  = stdz(`Clearing %`),
+        TO.s  = stdz(`TO/Game`),
+        CTO.s = stdz(`CTO/Game`),
+        WinPer = stdz(`Win %`),
+        TeamYear = paste0(Team, as.character(Year))) 
     
 
 mLax <-
@@ -70,7 +71,7 @@ mLaxW <-
             sigma ~ dunif(0, 50)),
         data = data.frame(laxData))
 
-plot(precis(mLaxW))
+plot(precis(mLaxW), xaxt = "n")
 mtext(concat("Win Percentage with Goals and Goals Against"))
 
 mu <- link(mLaxW)
@@ -90,6 +91,24 @@ axis(side=2, at=at, labels = round(ylabels,1))
 for(i in 1:nrow(laxData))
     lines(rep(laxData$WinPer[i],2), c(mu.PI[1,i], mu.PI[2,i]),
           col=rangi2)
+## Plot teams
+
+## compute residuals
+WinPer.resid <- laxData$Winper - mu.mean
+
+## get ordering by winpercentage
+o <- order(WinPer.resid)
+## plot
+
+dotchart(WinPer.resid[o], labels = laxData$TeamYear[o], xlim=c(-6,5), cex=0.6)
+
+abline(v=0, col=col.alpha("black", 0.2))
+for (i in 1:nrow(laxData)){
+    j <- o[i]
+    lines(laxData$WinPer[j] - c(mu.PI[1,j], mu.PI[2,j]), rep(i,2))
+    points(laxData$WinPer[j] - c(laxW.PI[1,j], laxW.PI[2,j]), rep(i,2),
+           pch=3, cex=0.6, col="gray")
+}
 
 
 mLaxG <-
@@ -115,14 +134,16 @@ mLaxG <-
             sigma ~ dunif(0, 50)),
         data = data.frame(laxData))
 
-plot(precis(mLaxG))
+plot(precis(mLaxG), xaxt = "n")
 mtext(concat("Goals/Game and all parameters"))
 
 mu <- link(mLaxG)
 mu.mean <- apply(mu, 2, mean)
 mu.PI <- apply(mu, 2, PI)
+mu.HPDI <- apply(mu, 2, HPDI, prob=0.89)
 laxG.sim <- sim(mLaxG, n = 1e4)
 laxG.PI <- apply(laxG.sim, 2, PI)
+laxG.HPDI <- apply(laxG.sim, 2, HPDI)
 
 plot(mu.mean ~ laxData$G.s, col=rangi2, ylim=range(mu.PI),
      xaxt="n", yaxt = "n", xlab = "Actual Goals/Game", ylab = "Predicted Goals/Game")
