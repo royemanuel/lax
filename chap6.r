@@ -64,3 +64,31 @@ m5.3 <-
         data = d)
 precis(m5.3)
 plot(precis(m5.3))
+
+
+## Find the marriage rate predictor using age at marriage predictor to
+## build predictor residual plots
+m5.4 <-
+    map(
+        alist(
+            Marriage.s ~ dnorm(mu, sigma),
+            mu <- a  + b * MedianAgeMarriage.s,
+            a ~ dnorm(0, 10),
+            b ~ dnorm( 0, 1),
+            sigma ~ dunif(0, 10)),
+        data = d)
+
+## compute expected value at MAP, for each State
+mu <- coef(m5.4)['a'] + coef(m5.4)['b'] * d$MedianAgeMarriage.s
+## compute the residual for each state
+m.resid <- d$Marriage.s - mu
+
+
+plot( Marriage.s ~ MedianAgeMarriage.s, d, col=rangi2)
+abline(m5.4)
+for (i in 1:length(m.resid)){
+    x <- d$MedianAgeMarriage.s[i] ## x location of line segments
+    y <- d$Marriage.s[i] ## observed endpoint of line segments
+    ## Draw it
+    lines(c(x,x), c(mu[i],y), lwd = 0.5, col = col.alpha("black", 0.7))
+}
