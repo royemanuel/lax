@@ -92,3 +92,33 @@ for (i in 1:length(m.resid)){
     ## Draw it
     lines(c(x,x), c(mu[i],y), lwd = 0.5, col = col.alpha("black", 0.7))
 }
+
+plot(d$Divorce ~ m.resid, d, col=rangi2)
+abline(m5.3)
+abline(v=0, col = "blue")
+
+## prepare new counterfactual data
+A.avg <- mean(d$MedianAgeMarriage.s) ## Average Median age of
+                                     ## marriage. Standardized, so
+                                     ## close to zero
+R.seq <- seq(from = -3, to = 3, length.out = 30) ## step over the interval of marriage rates we are interested in. In this case -3sigma to 3 sigma
+pred.data <-
+    data.frame(
+        Marriage.s=R.seq,
+        MedianAgeMarriage.s=A.avg)
+
+## compute counterfactual mean divorce (mu)
+mu <- link( m5.3, data = pred.data)
+mu.mean <- apply(mu, 2, mean)
+mu.PI <- apply(mu, 2, PI)
+
+## simulate counterfactual divorce outcomes
+R.sim <- sim(m5.3, data=pred.data, n=1e4)
+R.PI <- apply(R.sim, 2, PI)
+
+## display predictions, hiding raw data with type="n"
+plot(Divorce ~ Marriage.s, data = d, type="n")
+mtext("MedianAgeMarriage.s = 0")
+lines(R.seq, mu.mean)
+shade(mu.PI, R.seq)
+shade(R.PI, R.seq)
