@@ -122,3 +122,62 @@ mtext("MedianAgeMarriage.s = 0")
 lines(R.seq, mu.mean)
 shade(mu.PI, R.seq)
 shade(R.PI, R.seq)
+
+R.avg <- mean(d$Marriage.s)
+A.seq <- seq(from = -3, to=3.5, length.out = 30)
+pred.data2 <- data.frame(
+    Marriage.s=R.avg,
+    MedianAgeMarriage.s = A.seq)
+
+mu <- link(m5.3, data = pred.data2)
+mu.mean <- apply(mu, 2, mean)
+mu.PI <- apply(mu, 2, PI)
+
+A.sim <- sim(m5.3, data=pred.data2, n=1e4)
+A.PI <- apply(A.sim, 2, PI)
+
+
+plot(Divorce ~ MedianAgeMarriage.s, data = d, type = "n")
+mtext("Marriage.s = 0")
+lines(A.seq, mu.mean)
+shade(mu.PI, A.seq)
+shade(A.PI, A.seq)
+
+## Posterior prediction plots
+
+## Call link without specifying new data so it uses original data
+mu <- link(m5.3)
+
+## summarize samples across cases
+mu.mean <- apply(mu, 2, mean)
+mu.PI <- apply(mu, 2, PI)
+
+## simulate observations, again no new data, so uses original data
+divorce.sim <- sim(m5.3, n=1e4)
+divorce.PI <- apply(divorce.sim, 2, PI)
+
+## Plotting predictions against observed data
+plot(mu.mean ~ d$Divorce, col = rangi2, ylim=range(mu.PI),
+     xlab="Observed divorce", ylab="Predicted divorce")
+## plot the line of equality
+abline(a=0, b=1, lty=2)
+## plot the probability interval for the distribution of predicted mu
+for(i in 1:nrow(d))
+    lines(rep(d$Divorce[i],2), c(mu.PI[1,i], mu.PI[2,i]),
+          col=rangi2)
+identify(x = d$Divorce, y = mu.mean, labels=d$Loc, cex=0.8)
+
+## Residual plots
+## compute residuals
+divorce.resid <- d$Divorce - mu.mean
+## Order by divorce rate
+o <- order(divorce.resid)
+## make the plot
+dotchart(divorce.resid[o], labels=d$Loc[o], xlim=c(-6,5), cex=0.6)
+abline(v=0, col=col.alpha("black", 0.2))
+for( i in 1:nrow(d)) {
+    j <- o[i] # which State in order
+    lines(d$Divorce[j] - c(mu.PI[1,j], mu.PI[2,j]), rep(i,2))
+    points(d$Divorce[j] - c(divorce.PI[1,j],divorce.PI[2,j]) , rep(i,2),
+           pch=3, cex=0.6, col="gray")
+}
