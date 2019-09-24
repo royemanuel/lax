@@ -63,6 +63,7 @@ pred.data <- data.frame(log.mass=np.seq)
 mu <- link(m5.6, data = pred.data, n=1e4)
 mu.mean <- apply(mu, 2, mean)
 mu.PI <- apply(mu, 2, PI)
+## silly change to commit
 plot(kcal.per.g ~ log.mass, data=dcc, col=rangi2)
 lines(np.seq, mu.mean)
 lines(np.seq, mu.PI[1,], lty=2)
