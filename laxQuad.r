@@ -1,6 +1,6 @@
-library(rethinking)
 library(tidyverse)
 library(readxl)
+library(rethinking)
 laxData <- read_excel("2015-2019 Combined Lacrosse Statistics.xlsx",
                       sheet = "Results",
                       n_max = 353)
@@ -94,7 +94,7 @@ for(i in 1:nrow(laxData))
 ## Plot teams
 
 ## compute residuals
-WinPer.resid <- laxData$Winper - mu.mean
+WinPer.resid <- laxData$WinPer - mu.mean
 
 ## get ordering by winpercentage
 o <- order(WinPer.resid)
@@ -123,7 +123,7 @@ mLaxG <-
                 bCP * CP.s + 
                 bTO * TO.s + 
                 bCTO*CTO.s,
-            a ~ dnorm(0,10),
+            a ~ dnorm(0,10),b
             bSP  ~ dnorm(0, 10),
             bFO  ~ dnorm(0, 10),
             bEO  ~ dnorm(0, 10),
