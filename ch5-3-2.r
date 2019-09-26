@@ -38,6 +38,7 @@ m5.12 <-
 precis(m5.12, digits=3)
 
 pairs( ~ kcal.per.g + perc.fat + perc.lactose, data = d, col=rangi2)
+<<<<<<< HEAD
 cor(d$perc.fat, d$perc.lactose)
 
 sim.coll <- function(r=0.9){
@@ -54,3 +55,44 @@ rep.sim.coll <- function(r = 0.9, n = 100) {
 r.seq <- seq(from=0, to= 0.99, by=0.01)
 stddev <- sapply(r.seq, function(z) rep.sim.coll(r=z, n=100))
 plot(stddev ~ r.seq, type="l", col=rangi2, lwd=2, xlab = "correlation")
+=======
+
+## Post-treatment bias work
+
+## number of plants
+N <- 100
+
+## simulate initial hieghts
+h0 <- rnorm(N,10,2)
+
+## assign treatments and simulte fungus and growth
+treatment <- rep(0:1, each = N/2)
+fungus  <- rbinom(N, size=1, prob=0.5 - treatment * 0.4)
+h1 <- h0 + rnorm(N, 5 - 3 * fungus)
+
+## data frame
+d <- data.frame(h0=h0, h1=h1, treatment=treatment, fungus=fungus)
+
+m5.13 <-
+    map(
+        alist(
+            h1 ~ dnorm(mu, sigma),
+            mu  <- a + bH * h0 + bT * treatment + bF * fungus,
+            a ~ dnorm(0, 100),
+            bT ~ dnorm(0, 10),
+            bF ~ dnorm(0, 10),
+            bH ~ dnorm(0, 10),
+            sigma ~ dunif(0, 10)),
+        data=d)
+
+m5.14 <-
+    map(
+        alist(
+            h1 ~ dnorm(mu, sigma),
+            mu  <- a + bH * h0 + bT * treatment,
+            a ~ dnorm(0, 100),
+            bT ~ dnorm(0, 10),
+            bH ~ dnorm(0, 10),
+            sigma ~ dunif(0, 10)),
+        data=d)
+>>>>>>> 8d93df4439321326e02e45a727f00d38407bc253
