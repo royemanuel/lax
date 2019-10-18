@@ -127,3 +127,27 @@ lines(rugged.seq, mu.NotAfrica.mean)
 lines(rugged.seq, mu.Africa.mean, col = col.alpha(rangi2, 0.5))
 shade(mu.NotAfrica.PI, rugged.seq)
 shade(mu.Africa.PI, rugged.seq, col = col.alpha(rangi2, 0.5))
+
+
+m7.5b <-
+    map(
+        alist(
+            log_gdp ~ dnorm(mu, sigma),
+            mu <- a + bR * rugged + bAR * rugged * cont_africa + bA * cont_africa,
+            a ~ dnorm(8, 100),
+            bA ~ dnorm( 0, 1),
+            bR ~ dnorm(0,1),
+            bAR ~ dnorm(0, 1),
+            sigma ~ dunif(0, 10)),
+        data = dd)
+precis(m7.5b)
+
+post <- extract.samples(m7.5)
+gamma.Africa <- post$bR + post$bAR * 1
+gamma.notAfrica <- post$bR + post$bAR * 0
+
+dens(gamma.Africa, xlim=c(-0.5, 0.6), ylim = c(0, 5.5), xlab="gamma", col=rangi2)
+dens(gamma.notAfrica, add = TRUE)
+
+diff <- gamma.Africa - gamma.notAfrica
+sum(diff < 0) / length(diff)
