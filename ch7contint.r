@@ -67,3 +67,24 @@ m7.9 <-
 precis(m7.9)
 coeftab(m7.8, m7.9)
 compare(m7.8, m7.9)
+
+
+## using the base R graphics and the stuff from rethinking package
+par(mfrow=c(1,3))
+
+## loop over values of water.c and plot predictions
+shade.seq <- -1:1
+for(w in -1:1){
+    dt <- d[d$water.c==w,]
+    plot(blooms ~ shade.c, data=dt, col=rangi2,
+         main=paste("water.c =", w), xaxp=c(-1, 1, 2),
+         ylim= c(0,362),
+         xlab = "shade (centered)")
+    mu <- link(m7.9, data=data.frame(water.c=w, shade.c=shade.seq))
+    mu.mean <- apply(mu, 2, mean)
+    mu.PI <- apply(mu, 2, PI)
+    lines(shade.seq, mu.mean)
+    lines(shade.seq, mu.PI[1,], lty=2)
+    lines(shade.seq, mu.PI[2,], lty=2)
+}
+ 
