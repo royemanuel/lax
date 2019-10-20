@@ -23,7 +23,8 @@ str(dd.trim)
 m8.1stan <-
     map2stan(
         alist(
-            log_gdp ~ a + bR * rugged + bA * cont_africa + bAR * rugged * cont_africa,
+            log_gdp ~ dnorm(mu, sigma),
+                mu <- a + bR * rugged + bA * cont_africa + bAR * rugged * cont_africa,
             a ~ dnorm(0,100),
             bR ~ dnorm(0,10),
             bA ~ dnorm(0, 10),
@@ -32,3 +33,19 @@ m8.1stan <-
         data = dd.trim)
 
 precis(m8.1stan)
+
+m8.1stan_4chains <- map2stan(m8.1stan, chains=4, cores=4)
+
+post <- extract.samples(m8.1stan)
+str(post)
+pairs(post)
+pairs(m8.1stan)
+show(m8.1stan)
+ 
+
+
+
+
+
+
+
