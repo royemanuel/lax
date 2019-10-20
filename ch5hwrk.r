@@ -50,10 +50,8 @@ mh3 <-
 ## Marriage rate ~ norm(mu, sigma)
 ## mu <- a + bDR * divorce.rate + bMA * median.age
 
-library(XML)
 mormon <- "https://www.worldatlas.com/articles/mormon-population-by-state.html"
 
-mormon.tb <- readHTMLTable(mormon, header=T, which=1, stringsAsFactors=FALSE)
 library(rvest)
 
 mm <-read_html(mormon)  %>%
@@ -77,3 +75,15 @@ head(d)
 d <-
     left_join(x = d, y = mm, by = "Location") %>%
     mutate(mormon.std = (EMP - mean(EMP)) / sd(EMP))
+
+mMrmn <-
+    map(
+        alist(
+            Divorce ~ dnorm(mu, sigma),
+            mu <- a + bA*MedianAgeMarriage.s + bM * mormon.std,
+            a ~ dnorm(1, 10),
+            bA ~ dnorm(0,5),
+            bM ~ dnorm(0,5),
+            sigma ~ dunif(0,50)),
+        data = d)
+            
