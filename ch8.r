@@ -41,7 +41,7 @@ str(post)
 pairs(post)
 pairs(m8.1stan)
 show(m8.1stan)
- 
+plot(m8.1stan)
 
 
 
