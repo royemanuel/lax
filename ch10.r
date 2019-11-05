@@ -62,4 +62,14 @@ axis(1, at=1:4, labels=c("0/0", "1/0", "0/1", "1/1"))
 p <-  by(d$pulled_left, list(d$prosoc_left, d$condition, d$actor), mean)
 
 for (chimp in 1:7)
-    li
+    list(d$prosoc_left, d$condition,
+
+
+
+
+
+
+
+
+
+
