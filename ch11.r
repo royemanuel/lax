@@ -70,3 +70,24 @@ m11.3 <-
 coeftab(m11.1, m11.2, m11.3)
 
 compare(m11.1, m11.2, m11.3, refresh = 0.1)
+
+post <- extract.samples(m11.3)
+
+plot(1, 1, type="n", xlab="intention", ylab="probability", xlim=c(0,1),
+     ylim = c(0,1), xaxp=c(0,1,1), yaxp=c(0,1,2))
+
+kA <- 0 # value for action
+kC <-  1 # value for contact
+kI <- 0:1 # values for intention to calculate over
+
+for(s in 1:100){
+    p <- post[s,]
+    ak <- as.numeric(p[1:6])
+    phi <- p$bA * kA +
+        p$bI * kI +
+        p$bC * kC
+    pk <- pordlogit(1:6, a=ak, phi=phi)
+    for(i in 1:6)
+        lines(kI, pk[,i], col=col.alpha(rangi2, 0.1))
+}
+mtext(concat("action=", kA, ", contact=", kC))
