@@ -84,8 +84,8 @@ sumData <- summary(samples)
 ##     mutate(p50 = 
 
 
-allData <-
-    mutate(Palpha = inv.logit(
+## allData <-
+##     mutate(Palpha = inv.logit(
 
 
 
@@ -123,16 +123,21 @@ samples2 <- coda.samples(model2,
                         n.iter=5000)
 
 
+t3 <- t - 1
 
+datalist3 <- list(
+    y =y,
+    numTrial = numTrial,
+    Ntotal = Ntotal,
+    t = t3)
 
 
 mod3 <- "model {
     for (i in 1:Ntotal){
         y[i] ~ dbinom(p[i], numTrial[i])
         p[i] <- ilogit(a0 + a1 * t[i])    }
-    a1 ~ dnorm(0, 1/aSigma^2)
-    a0 ~ dnorm(0, 1/4)
-    aSigma ~ dgamma(1.64, .32)
+    a1 ~ dnorm(0, 1/100)
+    a0 ~ dnorm(0, 1/100)
     # Convert a0,a[] to sum-to-zero b0,b[] :
     ## for ( j in 1:Nlvl ) { m[j] <- a0 + a[j] } # cell means 
     ## b0 <- mean( m[1:Nlvl] )
@@ -143,7 +148,7 @@ mod3 <- "model {
 
 writeLines(mod3, "mod3.txt")
 model3 <- jags.model("mod3.txt",
-                    data=listdata,
+                    data=datalist3,
                     n.chains = 4)
 update(model3, n.iter=1000)
 
@@ -151,7 +156,12 @@ samples3 <- coda.samples(model3,
                         variable.names = c("a0", "a1"),
                         n.iter=5000)
 
-
+sum3 <- summary(samples3)
+a0_3 <- sum3[[1]]["a0",1]
+a1_3 <- sum3[[1]]["a1",1]
+allData <-
+    allData %>%
+    mutate(medP3 = inv.logit(a0_3 + a1_3 * t2))
 
 
 
