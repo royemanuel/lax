@@ -1,6 +1,10 @@
 library("rjags")
 library("tidyverse")
 library("boot")
+library("loo")
+library("parallel")
+
+options(mc.cores = detectCores())
 
 
 ## Build the fake data
@@ -28,6 +32,7 @@ mod <- "model {
     for (i in 1:Ntotal){
         y[i] ~ dbinom(p[i], numTrial[i])
         p[i] ~ dbeta(omega[t[i]] * (kappa[t[i]] - 2) + 1, (1 - omega[t[i]]) * (kappa[t[i]]-2) + 1)
+        loglik[i] <- logdensity.bin(y[i], p[i], numTrial[i])
     }
     for (j in 1:Nlvl){
         omega[j] <- ilogit(a0 + a[j])
@@ -52,7 +57,7 @@ model <- jags.model("mod.txt",
 update(model, n.iter=1000)
 
 samples <- coda.samples(model,
-                        variable.names = c("b0", "b", "omega", "kappa"),
+                        variable.names = c("b0", "b", "omega", "kappa", "loglik"),
                         n.iter=5000)
 
 
@@ -87,7 +92,16 @@ sumData <- summary(samples)
 ## allData <-
 ##     mutate(Palpha = inv.logit(
 
+## Working a WAIC calculation using look
 
+s1_all <- rbind(samples[[1]],
+                samples[[2]],
+                samples[[3]],
+                samples[[4]])
+
+s1_ll <- s1_all[,paste0("loglik[", 1:400, "]")]
+w_s1 <- waic(s1_ll)
+loo(s1_ll)
 
 
 
@@ -95,6 +109,7 @@ sumData <- summary(samples)
 mod2 <- "model {
     for (i in 1:Ntotal){
         y[i] ~ dbinom(p[t[i]], numTrial[i])
+        loglik2[i] <- logdensity.bin(y[i], p[t[i]], numTrial[i])
     }
     for (j in 1:Nlvl){
         p[j] <- ilogit(a0 + a[j])
@@ -119,8 +134,19 @@ model2 <- jags.model("mod2.txt",
 update(model2, n.iter=1000)
 
 samples2 <- coda.samples(model2,
-                        variable.names = c("b0", "b", "p", "kappa"),
+                        variable.names = c("b0", "b", "p", "kappa", "loglik2"),
                         n.iter=5000)
+
+## Working a WAIC calculation using look
+
+s2_all <- rbind(samples2[[1]],
+                samples2[[2]],
+                samples2[[3]],
+                samples2[[4]])
+
+s2_ll <- s2_all[,paste0("loglik2[", 1:400, "]")]
+w_s2 <- waic(s2_ll)
+loo(s2_ll)
 
 
 t3 <- t - 1
@@ -135,7 +161,9 @@ datalist3 <- list(
 mod3 <- "model {
     for (i in 1:Ntotal){
         y[i] ~ dbinom(p[i], numTrial[i])
-        p[i] <- ilogit(a0 + a1 * t[i])    }
+        p[i] <- ilogit(a0 + a1 * t[i])    
+        loglik3[i] <- logdensity.bin(y[i], p[i], numTrial[i])
+    }
     a1 ~ dnorm(0, 1/100)
     a0 ~ dnorm(0, 1/100)
     # Convert a0,a[] to sum-to-zero b0,b[] :
@@ -153,7 +181,7 @@ model3 <- jags.model("mod3.txt",
 update(model3, n.iter=1000)
 
 samples3 <- coda.samples(model3,
-                        variable.names = c("a0", "a1"),
+                        variable.names = c("a0", "a1", "loglik3"),
                         n.iter=5000)
 
 sum3 <- summary(samples3)
@@ -163,6 +191,47 @@ allData <-
     allData %>%
     mutate(medP3 = inv.logit(a0_3 + a1_3 * t2))
 
+s3_all <- rbind(samples3[[1]],
+                samples3[[2]],
+                samples3[[3]],
+                samples3[[4]])
+
+s3_ll <- s3_all[,paste0("loglik3[", 1:400, "]")]
+w_s3 <- waic(s3_ll)
+loo(s3_ll)
 
 
 
+
+mod4 <- "model {
+    for (i in 1:Ntotal){
+        y[i] ~ dbinom(p[i], numTrial[i])
+        p[i] <- ilogit(a0)    
+        loglik4[i] <- logdensity.bin(y[i], p[i], numTrial[i])
+    }
+    a0 ~ dnorm(0, 1/100)
+}"
+
+
+
+writeLines(mod4, "mod4.txt")
+model4 <- jags.model("mod4.txt",
+                    data=datalist3,
+                    n.chains = 4)
+update(model4, n.iter=1000)
+
+samples4 <- coda.samples(model4,
+                        variable.names = c("a0", "loglik4"),
+                        n.iter=5000)
+
+
+s4_all <- rbind(samples4[[1]],
+                samples4[[2]],
+                samples4[[3]],
+                samples4[[4]])
+
+s4_ll <- s4_all[,paste0("loglik4[", 1:400, "]")]
+w_s4 <- waic(s4_ll)
+loo(s4_ll)
+
+loo_model_weights(list(s2_ll, s3_ll, s4_ll))
