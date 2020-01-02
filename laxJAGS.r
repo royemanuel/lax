@@ -62,10 +62,10 @@ laxlist <-
 
 laxmod <- model {
     for(i in 1:n){
-        OWP[i] ~ dnorm(mu[year[i], team[i]], sigma[i])
+        OWP[i] ~ dnorm(mu[year[i], team[i]], sigma)
     }
     for(j in 1:numY){
         for(k in 1:numT){
-            mu[j,k] = a0 + aG * 
+            mu[j,k] = a0 + aG * goals
     
 

@@ -73,7 +73,7 @@ compare(m11.1, m11.2, m11.3, refresh = 0.1)
 
 post <- extract.samples(m11.3)
 
-plot(1, 1, type="n", xlab="intention", ylab="probability", xlim=c(0,1),
+plot(1, 1, type="n", xlab="inten tion", ylab="probability", xlim=c(0,1),
      ylim = c(0,1), xaxp=c(0,1,1), yaxp=c(0,1,2))
 
 kA <- 0 # value for action
