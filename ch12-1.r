@@ -51,3 +51,15 @@ abline(v=32.5, lwd=0.5)
 text(8, 0, "small tanks")
 text(16+8, 0, "medium tanks")
 text(32+8, 0, "large tanks")
+
+
+plot(NULL,xlim=c(-3,4), ylim=c(0, 0.35),
+     xlab="log-odds survive", ylab="Density")
+for (i in 1:100)
+    curve( dnorm(x, post$a[i], post$sigma[i]), add=TRUE,
+          col = col.alpha("black", 0.2))
+
+## sample 8000 imaginary tanks from the posterior distribution
+sim_tanks <- rnorm(8000, post$a, post$sigma)
+## Transform to probability and visualize using logit
+dens(logistic(sim_tanks), xlab = "probability survive")
