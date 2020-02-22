@@ -49,11 +49,13 @@ m12.5 <-
 
 precis(m12.5, depth = 2)
 plot(precis(m12.5, depth =2))
+compare(m12.4, m12.5)
 
-
-
-
-
+post <- extract.samples(m12.5)
+dens(post$sigma_block, xlab = "sigma", xlim = c(0,4))
+dens(post$sigma_actor, col = rangi2, lwd = 2, add=TRUE)
+text(2, 0.85, "actor", col=rangi2)
+text(0.75, 2, "block")
 
 
 
