@@ -16,7 +16,7 @@ laxData <- read_excel("2015-2019 Combined Lacrosse Statistics.xlsx",
 years <- unique(laxData$Year)
 teams <- unique(laxData$Team)
 
-
+tms <- laxData$Team
 yrs <- laxData$Year
 
 replaceWithNum <- function(tgtVec, refVec){
@@ -35,7 +35,7 @@ tms <- replaceWithNum(tms, teams)
 
 
 laxData <- bind_cols(laxData, Year.f = yrs, Team.f = tms) %>%
-    mutate(OWP = `Win %` / (1 - `Win %`))
+    mutate(WP = `Win %` / (1 - `Win %`))
 
 y <- laxData$`Win %`
 goals <- laxData$`G/Game`
@@ -44,11 +44,11 @@ year <- laxData$Year.f
 numY <- length(year)
 team <- laxData$Team.f
 numT <- length(team)
-OWP <- laxData(OWP)
+WP <- laxData$WP
 
 
 laxlist <-
-    list(OWP = OWP,
+    list(WP = WP,
          goals = goals,
          goalsAgainst = goalsAgainst,
          year = year,
@@ -60,12 +60,31 @@ laxlist <-
          
          
 
-laxmod <- model {
+lax <- "model {
     for(i in 1:n){
-        OWP[i] ~ dnorm(mu[year[i], team[i]], sigma)
+        OWP[i] ~ dbeta((pBar[i] * theta) , ((1 - pBar[i]) * theta))
+        pBar[i] = ilogit(a0 + aG[i] * goals[i])    
+        aG[i] ~ dnorm(aG0, 1/100)
     }
-    for(j in 1:numY){
-        for(k in 1:numT){
-            mu[j,k] = a0 + aG * goals
+    aG0 ~ dnorm(0, 1/100)
+    a0 ~ dnorm(0, 1/100)
+    theta ~ dexp(1)
+}"
+
+writeLines(lax, "lax.txt")
+
+laxmod <- jags.model("lax.txt",
+                     data = laxlist,
+                     n.chains = 4)
+update(laxmod, n.iter = 1000)
+samplesLax <- coda.samples(laxmod,
+                           variable.names = c("a0",  "theta", "aG0"),
+                           n.iter = 5000)
+
+
+
+    
+            
+
     
 
