@@ -2,7 +2,7 @@ library(rethinking)
 data(reedfrogs)
 d <- reedfrogs
 str(d)
-options(mc.cores = parallel::detectCores())
+options(mc.cores = parallel::detectCores()-2)
 d$tank <- 1:nrow(d)
 
 
