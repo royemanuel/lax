@@ -57,6 +57,46 @@ dens(post$sigma_actor, col = rangi2, lwd = 2, add=TRUE)
 text(2, 0.85, "actor", col=rangi2)
 text(0.75, 2, "block")
 
+chimp <- 2
+d.pred <-
+    list(
+        prosoc_left = c(0,1,0,1),
+        condition = c(0, 0, 1, 1),
+        actor = rep(chimp, 4)
+    )
+
+link.m12.4 <- link(m12.4, data = d.pred)
+pred.p <- apply(link.m12.4, 2, mean)
+pred.p.PI <- apply(link.m12.4, 2, PI)
+
+plot(0, 0, type = "n", xlab = "prosoc_left/condition",
+     ylab = "proportion pulled left", ylim = c(0,1), xaxt="n",
+     xlim = c(1, 4))
+axis(1, at=1:4, labels = c("0/0", "1/0", "0/1", "1/1"))
+p <- by(d$pulled_left,
+        list(d$prosoc_left, d$condition, d$actor), mean)
+for (chimp in 1:7){
+    lines(1:4, as.vector(p[,,chimp]),
+          col = rangi2, lwd = 1.5)
+}
+
+lines(1:4, pred.p)
+shade(pred.p.PI, 1:4)
+
+
+## Method for building the posterior predictions
+
+post <- extract.samples(m12.4)
+str(post)
+dens(post$a_actor[,5])
+
+p.link <- function(prosoc_left, condition, actor){
+    logodds <- with(post,
+                    a + a_actor[,actor] +
+                    (bp + bpC + condition) * )
+}
+
+
 
 
 
