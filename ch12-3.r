@@ -93,16 +93,15 @@ dens(post$a_actor[,5])
 p.link <- function(prosoc_left, condition, actor){
     logodds <- with(post,
                     a + a_actor[,actor] +
-                    (bp + bpC + condition) * )
+                    (bp + bpC + condition) * prosoc_left)
+    return(logistic(logodds))
 }
 
 
-
-
-
-
-
-
-
+prosoc_left  <- c(0,1,0,1)
+condition <- c(0, 0, 1, 1)
+pred.raw <- sapply(1:4, function(i) p.link(prosoc_left[i], condition[i], 2))
+pred.p  <- apply(pred.raw, 2, mean)
+pred.p.PI <- apply(pred.raw, 2, PI)
 
 
