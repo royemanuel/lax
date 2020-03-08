@@ -103,6 +103,7 @@ pred.raw <- sapply(1:4, function(i) p.link(prosoc_left[i], condition[i], 2))
 pred.p <- apply(pred.raw, 2, mean)
 pred.p.PI <- apply(pred.raw, 2, PI)
 
+<<<<<<< HEAD
 d.pred <- list(
     prosoc_left = c(0, 1, 0, 1),
     condition = c(0, 0, 1, 1),
@@ -127,3 +128,12 @@ plot(0, 0, type = "n", xlab = "prosoc_left/condition",
 axis(1, at=1:4, labels = c("0/0", "1/0", "0/1", "1/1"))
 lines(1:4, pred.p.mean)
 shade(pred.p.PI, 1:4)
+=======
+prosoc_left  <- c(0,1,0,1)
+condition <- c(0, 0, 1, 1)
+pred.raw <- sapply(1:4, function(i) p.link(prosoc_left[i], condition[i], 2))
+pred.p  <- apply(pred.raw, 2, mean)
+pred.p.PI <- apply(pred.raw, 2, PI)
+
+
+>>>>>>> 31f7284b48465c9dca3a4ed81631f9e87eda1c43
