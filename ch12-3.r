@@ -103,7 +103,6 @@ pred.raw <- sapply(1:4, function(i) p.link(prosoc_left[i], condition[i], 2))
 pred.p <- apply(pred.raw, 2, mean)
 pred.p.PI <- apply(pred.raw, 2, PI)
 
-<<<<<<< HEAD
 d.pred <- list(
     prosoc_left = c(0, 1, 0, 1),
     condition = c(0, 0, 1, 1),
@@ -128,12 +127,68 @@ plot(0, 0, type = "n", xlab = "prosoc_left/condition",
 axis(1, at=1:4, labels = c("0/0", "1/0", "0/1", "1/1"))
 lines(1:4, pred.p.mean)
 shade(pred.p.PI, 1:4)
-=======
+
 prosoc_left  <- c(0,1,0,1)
 condition <- c(0, 0, 1, 1)
 pred.raw <- sapply(1:4, function(i) p.link(prosoc_left[i], condition[i], 2))
 pred.p  <- apply(pred.raw, 2, mean)
 pred.p.PI <- apply(pred.raw, 2, PI)
 
+d.pred <- list(
+    prosoc_left = c(0, 1, 0, 1),
+    condition = c(0, 0, 1, 1),
+    actor = rep(2, 4))
 
->>>>>>> 31f7284b48465c9dca3a4ed81631f9e87eda1c43
+## replace vaying intercept samples with zeros
+## 1000 samples by 7 actors
+a_actor_zeros <- matrix(0, 1000, 7)
+
+link.m12.4 <- link(m12.4, n=1000, data = d.pred,
+                   replace=list(a_actor = a_actor_zeros))
+
+## summarize and plot
+pred.p.mean <- apply(link.m12.4, 2, mean)
+pred.p.PI <- apply(link.m12.4, 2, PI, prob = 0.8)
+plot(0, 0, type = "n", xlab = "prosoc_left/condition",
+     ylab = "proportion pulled left", ylim = c(0, 1),
+     xaxt = "n", xlim = c(1,4))
+axis(1, at = 1:4, labels= c("0/0", "1/0", "0/1", "1/1"))
+lines(1:4, pred.p.mean)
+shade(pred.p.PI, 1:4)
+
+
+
+## replace varying intercept samples with simulations
+post <- extract.samples(m12.4)
+a_actor_sims <- rnorm(7000, 0, post$sigma_actor)
+a_actor_sims <- matrix(a_actor_sims, 1000, 7)
+
+link.m12.4 <- link(m12.4,
+                   n = 1000,
+                   data = d.pred,
+                   replace = list(a_actor = a_actor_sims))
+
+
+post <- extract.samples(m12.4)
+sim.actor <- function(i) {
+    sim_a_actor <- rnorm(1, 0, post$sigma_actor[i])
+    P <- c(0, 1, 0, 1)
+    C <- c(0, 0, 1, 1)
+    p <- logistic(post$a[i] +
+                  sim_a_actor +
+                  (post$bp[i] + post$bpC[i] * C) * P
+                  )
+    return(p)
+}
+
+## empty plot
+plot(0, 0, type = "n", xlab = "prosoc_left/condition",
+     ylab = "proportion pulled left",
+     ylim = c(0, 1),
+     xaxt = "n",
+     xlim = c(1, 4))
+axis(1, at = 1:4, labels = c("0/0", "1/0", "0/1", "1/1"))
+
+## plot 50 simulated actors
+
+for(i in 1:50) lines(1:4, sim.actor(i), col = col.alpha("black", 0.5))
