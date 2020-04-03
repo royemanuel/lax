@@ -192,3 +192,4 @@ axis(1, at = 1:4, labels = c("0/0", "1/0", "0/1", "1/1"))
 ## plot 50 simulated actors
 
 for(i in 1:50) lines(1:4, sim.actor(i), col = col.alpha("black", 0.5))
+
