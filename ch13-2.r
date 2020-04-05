@@ -34,20 +34,23 @@ m13.3 <-
 
 
 ## Tried to redo the plot from 13.1, but this isn't working so well.
-## d <-
-##     d %>%
-##     mutate(acc_rate = admit / applications)
 
-## a1 <-
+## p_int <-
 ##     d %>%
 ##     group_by(dept) %>%
-##     summarise(admit = sum(admit), app = sum(applications)) %>%
-##     transmute(acc_rate = admit / app) 
-## b1  <- d %>% filter(male == 1) %>% select(acc_rate)
-## b1l <- log((b1-a1)/(1-(b1-a1)))
+##     summarise(app = sum(applications),
+##               acc = sum(admit)) %>%
+##     mutate(dept_int = acc / app,
+##            logOdds = log(dept_int / (1 - dept_int)))
 
-## a1l <- log((a1/(1-a1)))
+## p_maleint <-
+##     d %>%
+##     mutate(acc_rate = admit / applications) %>%
+##     filter(male == 1) %>%
+##     mutate(logOddsB = log(acc_rate / (1 - acc_rate)) - p_int$logOdds)
 
+## a1 <- p_int$logOdds
+## b1 <- p_maleint$logOddsB
 ## ## extract sample means from partially pooled estimates
 ## post <- extract.samples(m13.3)
 ## a2 <- apply(post$a_dept, 2, mean)
@@ -55,15 +58,19 @@ m13.3 <-
 ## b2 <- apply(post$bm_dept, 2, mean)
 ## pb2 <- exp(a2 + b2) / (1 + exp(a2 + b2)) - pa2
 ## ## Plot each and connect hem
-## plot(a1$acc_rate, b1$acc_rate, xlab = "intercept", ylab = "slope",
+## plot(a1, b1, xlab = "intercept", ylab = "slope",
 ##      pch = 16, col = rangi2 , ylim= c(min(b1)-0.1, max(b1) + 0.1),
 ##      xlim = c(min(a1) - 0.1, max(a1) + 0.1))
 
-## points(pa2, pb2, pch = 1)
-## for( i in 1:6) lines(c(a1$acc_rate[i], pa2[i]), c(b1$acc_rate[i], pb2[i]))
+## Mu_est <- c(mean(post$a_dept), mean(post$bm_dept))
+## rho_est <- mean(post$Rho[,1,2])
+## sa_est <- mean(post$sigma_dept
+
+## ppoints(a2, b2, pch = 1)
+## for( i in 1:6) lines(c(a1[i], a2[i]), c(b1[i], b2[i]))
 
 
-## library(ellipse)
+## for(library(ellipse)
 
 m13.4 <-
     map2stan(
