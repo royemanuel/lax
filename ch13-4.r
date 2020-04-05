@@ -36,3 +36,4 @@ m13.7 <-
         warmup = 2000, iter = 1e4, chains = 4)
             
 precis(m13.7, depth = 2)
+ 
